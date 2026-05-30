@@ -1,0 +1,16 @@
+{
+  "name": "Python API Server",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+        // "charliermarsh.ruff"
+      ]
+    }
+  },
+  "remoteUser": "vscode"
+}
