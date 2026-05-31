@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi.responses import JSONResponse
 
 app = FastAPI(title="確認さん")
 
@@ -7,10 +8,7 @@ async def get_ua(request: Request, response: Response):
     """
     ブラウザの User-Agent と UA-CH (User-Agent Client Hints) ヘッダーを返します。
     """
-    # サーバー側から「詳細な情報（High Entropy）を要求する」と宣言
-    # これにより、ブラウザに対して追加のヘッダー送信を促す
     response.headers["Accept-CH"] = "sec-ch-ua-full-version-list, sec-ch-ua-arch, sec-ch-ua-model"
-    # ユーザーに「次回のアクセスから送ってね」と伝えるための指示（重要）
     response.headers["Permissions-Policy"] = "ch-ua-full-version-list=(self)"
 
     # 取得したいヘッダーのリスト
@@ -32,10 +30,39 @@ async def get_ua(request: Request, response: Response):
         if value:
             ua_info[header] = value
 
+    # クライアントIPの取得
+    x_forwarded_for = request.headers.get("x-forwarded-for")
+    if x_forwarded_for:
+        # Comma-separated list の最初のIPが、真のクライアントIP
+        client_ip = x_forwarded_for.split(",")[0].strip()
+    else:
+        client_ip = request.client.host
+        
     return {
-        "message": "Browser User-Agent and Client Hints information",
-        "ua_info": ua_info
+        "status":"OK",
+        "ua_info": ua_info,
+        "client_ip": client_ip
     }
+
+@app.api_route("/{path_name:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def catch_all(request: Request):
+    return JSONResponse(
+        status_code=404,
+        content={
+            "status": "Error",
+            "message": "404 Not Found",
+        }
+    )
+
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "status": "Error",
+            "message": f"{exc.status_code} {exc.detail}"
+        }
+    )
 
 if __name__ == "__main__":
     import uvicorn
