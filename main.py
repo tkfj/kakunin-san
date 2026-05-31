@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.responses import JSONResponse
 
-app = FastAPI(title="確認さん")
+app = FastAPI(title="kakunin-san", description="A simple API to check User-Agent and Client Hints", version="1.0.0")
 
 @app.get("/")
 async def get_ua(request: Request, response: Response):
@@ -40,19 +40,18 @@ async def get_ua(request: Request, response: Response):
         
     return {
         "status":"OK",
+        "message": "Hi, this is kakunin-san!",
         "ua_info": ua_info,
         "client_ip": client_ip
     }
 
-@app.api_route("/{path_name:path}", methods=["GET", "POST", "PUT", "DELETE"])
+@app.api_route("/", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
 async def catch_all(request: Request):
-    return JSONResponse(
-        status_code=404,
-        content={
-            "status": "Error",
-            "message": "404 Not Found",
-        }
-    )
+    raise HTTPException(status_code=405, detail="Method Not Allowed")
+
+@app.api_route("/{path_name:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
+async def catch_all(request: Request):
+    raise HTTPException(status_code=404, detail="Not Found")
 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException):
