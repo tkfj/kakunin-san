@@ -8,19 +8,20 @@ async def get_ua(request: Request, response: Response):
     """
     ブラウザの User-Agent と UA-CH (User-Agent Client Hints) ヘッダーを返します。
     """
-    response.headers["Accept-CH"] = "sec-ch-ua-full-version-list, sec-ch-ua-arch, sec-ch-ua-model"
-    response.headers["Permissions-Policy"] = "ch-ua-full-version-list=(self)"
+    requested_hints = "sec-ch-ua-full-version-list, sec-ch-ua-arch, sec-ch-ua-model, sec-ch-ua-platform-version"
+    response.headers["Accept-CH"] = requested_hints
+    response.headers["Critical-CH"] = requested_hints
+    response.headers["Permissions-Policy"] = "ch-ua-full-version-list=(self), ch-ua-arch=(self), ch-ua-model=(self), ch-ua-platform-version=(self)"
 
-    # 取得したいヘッダーのリスト
     target_headers = [
         "user-agent",
-        "web-agent",
         "sec-ch-ua",
+        "sec-ch-ua-full-version-list",
         "sec-ch-ua-mobile",
         "sec-ch-ua-platform",
+        "sec-ch-ua-platform-version",
         "sec-ch-ua-model",
         "sec-ch-ua-arch",
-        "sec-ch-ua-platform-version",
     ]
 
     # レスポンス用の辞書を構築
